@@ -9,7 +9,7 @@ from .medical_history_services import create_medical_history, get_medical_histor
 
 router = APIRouter(prefix="/camps", tags=["medical-history"])
 
-_staff_only = require_roles(UsersRole.VOLUNTEER, UsersRole.COORDINATOR, UsersRole.ADMIN)
+_staff_only = require_roles(UsersRole.VOLUNTEER, UsersRole.COORDINATOR, UsersRole.DOCTOR, UsersRole.ADMIN)
 
 
 @router.post(

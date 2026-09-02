@@ -13,8 +13,8 @@ from database.models.camp_models import (
     CampRegistrationsRegistrationSource,
     CampRegistrationsStatus,
 )
+from database.models.families_models import Families
 from database.models.patient_models import Patients
-from database.models.families_models import  Families
 from .registrations_schema import CampRegistrationCreate
 
 _DASH_RE = re.compile(r"[\u2012\u2013\u2014\u2015-]")
@@ -79,9 +79,9 @@ def create_family_registration(
             family_id=family.id,
             phone=member.phone,
             gender=member.gender,
-            date_of_birth=member.date_of_birth,
+            dob_or_age=member.dob_or_age,
             email=payload.email,
-            flat_number=payload.flat_number,  # requires the flat_number column — see migration note
+            flat_number=payload.flat_number,
         )
         db.add(patient)
         db.flush()
@@ -97,7 +97,7 @@ def create_family_registration(
             slot_id=slot.id,
             registration_source=registration_source,
             status=CampRegistrationsStatus.REGISTERED,
-            service_interest=payload.service_interest,  # requires the service_interest column — see migration note
+            service_interest=payload.service_interest,
         )
         db.add(registration)
         created.append((patient, registration))

@@ -51,8 +51,8 @@ def me(identity: Identity = Depends(get_current_identity), db: Session = Depends
 def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     """
     Public self-serve signup. Role is limited to VOLUNTEER or PATIENT —
-    ADMIN and DOCTOR accounts can only be created by an existing admin via
-    POST /auth/users.
+    ADMIN and DOCTOR accounts can only be created by an existing admin/doctor
+    via POST /auth/users.
     """
     create_payload = UserCreateRequest(
         name=payload.name,
@@ -72,9 +72,9 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
 def create_staff_user(
     payload: UserCreateRequest,
     db: Session = Depends(get_db),
-    identity: Identity = Depends(require_roles(UsersRole.ADMIN)),
+    identity: Identity = Depends(require_roles(UsersRole.ADMIN, UsersRole.DOCTOR)),
 ):
-    """Admin-only: create a DOCTOR / VOLUNTEER / COORDINATOR / ADMIN / PATIENT account directly."""
+    """Admin/Doctor: create a DOCTOR / VOLUNTEER / COORDINATOR / ADMIN / PATIENT account directly."""
     try:
         user = create_user(db, payload)
     except ValueError as e:
@@ -96,6 +96,6 @@ def bootstrap_admin(payload: UserCreateRequest, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(
             status_code=400,
-            detail="Users already exist — use POST /auth/users (as an admin) instead",
+            detail="Users already exist — use POST /auth/users (as an admin or doctor) instead",
         )
     return UserResponse(success=True, message="First admin created", data=UserData.model_validate(user))

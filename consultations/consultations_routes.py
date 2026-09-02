@@ -1,4 +1,7 @@
+import io
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from core.dependencies import require_roles
@@ -10,7 +13,8 @@ from .consultations_schema import (
     ConsultationUpdate,
     PrescriptionCreate,
 )
-from .consultations_services import add_prescription, create_consultation, get_consultation, update_consultation
+from .consultations_services import get_consultation_pdf_data, add_prescription, create_consultation, get_consultation, update_consultation
+from .consultations_pdf import build_consultation_pdf
 
 router = APIRouter(prefix="/camps", tags=["consultations"])
 
@@ -93,3 +97,24 @@ def add_consultation_prescription(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return ConsultationResponse(success=True, message="Prescription added", data=result)
+
+
+@router.get("/{camp_id}/registrations/{registration_id}/consultation/pdf")
+def download_consultation_pdf(
+    camp_id: str,
+    registration_id: str,
+    db: Session = Depends(get_db),
+    identity=Depends(_any_staff),
+):
+    """Any staff role: prescription/consultation PDF on the clinic's letterhead."""
+    try:
+        data = get_consultation_pdf_data(db, camp_id, registration_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    pdf_bytes = build_consultation_pdf(data)
+    filename = f"consultation_{data['registration_code']}.pdf"
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

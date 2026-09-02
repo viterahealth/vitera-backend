@@ -32,7 +32,7 @@ from .camps_services import (
 
 router = APIRouter(tags=["camps"])
 
-_manage_camps = require_roles(UsersRole.ADMIN, UsersRole.COORDINATOR)
+_manage_camps = require_roles(UsersRole.ADMIN, UsersRole.COORDINATOR, UsersRole.DOCTOR)
 _view_camps = require_roles(UsersRole.ADMIN, UsersRole.COORDINATOR, UsersRole.VOLUNTEER, UsersRole.DOCTOR)
 
 

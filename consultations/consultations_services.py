@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from database.models.camp_models import CampRegistrations, CampRegistrationsStatus
+from database.models.camp_models import Camps, CampRegistrations, CampRegistrationsStatus
 from database.models.consultations_models import Consultations, Prescriptions
 from database.models.patient_models import Patients
 from database.models.user_models import Users
@@ -168,3 +168,41 @@ def add_prescription(db: Session, camp_id: str, registration_id: str, payload: P
 
     doctor = db.query(Users).filter(Users.id == consultation.doctor_id).first()
     return _to_result(consultation, _full_name(patient), doctor.name if doctor else "Unknown")
+
+
+def get_consultation_pdf_data(db: Session, camp_id: str, registration_id: str) -> dict:
+    registration, patient = _get_registration_and_patient(db, camp_id, registration_id)
+
+    consultation = db.query(Consultations).filter(Consultations.registration_id == registration_id).first()
+    if not consultation:
+        raise ValueError("No consultation recorded for this registration yet")
+
+    doctor = db.query(Users).filter(Users.id == consultation.doctor_id).first()
+    camp = db.query(Camps).filter(Camps.id == camp_id).first()
+
+    return {
+        "patient_name": _full_name(patient),
+        "patient_code": patient.patient_code,
+        "gender": patient.gender.value if patient.gender else None,
+        "dob_or_age": getattr(patient, "dob_or_age", None),
+        "camp_code": camp.camp_code if camp else None,
+        "camp_date": camp.camp_date.isoformat() if camp and camp.camp_date else None,
+        "registration_code": registration.registration_code,
+        "doctor_name": doctor.name if doctor else "Unknown",
+        "consultation_date": consultation.updated_at.strftime("%d %b %Y, %I:%M %p"),
+        "chief_complaint": consultation.chief_complaint,
+        "clinical_observations": consultation.clinical_observations,
+        "diagnosis": consultation.diagnosis,
+        "doctor_notes": consultation.doctor_notes,
+        "recommendations": consultation.recommendations,
+        "prescriptions": [
+            {
+                "medicine_name": p.medicine_name,
+                "dosage": p.dosage,
+                "frequency": p.frequency,
+                "duration": p.duration,
+                "instructions": p.instructions,
+            }
+            for p in consultation.prescriptions
+        ],
+    }

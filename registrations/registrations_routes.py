@@ -14,7 +14,7 @@ from .registrations_services import check_in_registration, create_family_registr
 
 router = APIRouter(prefix="/camps", tags=["registrations"])
 
-_staff_only = require_roles(UsersRole.VOLUNTEER, UsersRole.COORDINATOR, UsersRole.ADMIN)
+_staff_only = require_roles(UsersRole.VOLUNTEER, UsersRole.COORDINATOR, UsersRole.DOCTOR, UsersRole.ADMIN)
 
 
 @router.post("/{camp_id}/registrations", response_model=CampRegistrationResponse)
@@ -71,7 +71,7 @@ def check_in(
 #     camp_id: str,
 #     payload: CampRegistrationCreate,
 #     db: Session = Depends(get_db),
-#     identity=Depends(require_roles(UsersRole.VOLUNTEER, UsersRole.COORDINATOR, UsersRole.ADMIN)),
+#     identity=Depends(require_roles(UsersRole.VOLUNTEER, UsersRole.COORDINATOR, UsersRole.DOCTOR, UsersRole.ADMIN)),
 # ):
 #     try:
 #         result = create_family_registration(

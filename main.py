@@ -70,6 +70,7 @@ from camps.camps_routes import router as camps_router
 from vitals.vitals_routes import router as vitals_router
 from medical_history.medical_history_routes import router as history_router
 from consultations.consultations_routes import router as consultations_router
+from patients.patients_routes import router as patients_router
 
 app.include_router(auth_router)
 app.include_router(registrations_router)
@@ -77,6 +78,7 @@ app.include_router(camps_router)
 app.include_router(vitals_router)
 app.include_router(history_router)
 app.include_router(consultations_router)
+app.include_router(patients_router)
 
 # ============================
 # HEALTH CHECK
